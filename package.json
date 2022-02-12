@@ -1,0 +1,16 @@
+{
+  "name": "tsmpc",
+  "version": "1.0.0",
+  "description": "Monadic Parser Combinators in Typescript",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "fp-ts",
+    "typescript",
+    "parser"
+  ],
+  "author": "Alen Kis",
+  "license": "ISC"
+}
