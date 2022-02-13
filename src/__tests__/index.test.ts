@@ -1,7 +1,7 @@
-import { item } from '../index';
+import { dropMiddle, item } from '../index';
 import * as P from '../parser';
 
-describe('firstChar', () => {
+describe('item', () => {
   it('Should parse first char of the input', () => {
     const input = 'hello';
     const result = P.parse(item)(input);
@@ -20,5 +20,14 @@ describe('firstChar', () => {
     const input = '';
     const result = P.parse(item)(input);
     expect(result).toBeNone();
+  });
+});
+
+describe('dropMiddle', () => {
+  it('Should parse 3 characters and drop the middle character', () => {
+    const input = 'abcd';
+    const result = P.parse(dropMiddle)(input);
+
+    expect(result).toEqualSome(['ac', 'd']);
   });
 });

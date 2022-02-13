@@ -1,3 +1,4 @@
+import { pipe } from 'fp-ts/lib/function';
 import * as O from 'fp-ts/Option';
 import * as P from './parser';
 
@@ -20,3 +21,11 @@ export const zero = (_: string) => O.none;
  */
 export const item: P.Parser<string> = (input) =>
   input.length > 0 ? O.some([input[0], input.slice(1)]) : O.none;
+
+export const dropMiddle: P.Parser<string> = pipe(
+  (s1: string) => (_: string) => (s3: string) => s1 + s3,
+  P.of,
+  P.ap(item),
+  P.ap(item),
+  P.ap(item),
+);
