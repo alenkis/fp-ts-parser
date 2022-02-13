@@ -1,38 +1,61 @@
-import { flow } from 'fp-ts/lib/function';
-import { firstChar } from '../index';
+import { string } from 'fp-ts';
+import { apply, flow, pipe } from 'fp-ts/lib/function';
+import { toUpperCase } from 'fp-ts/lib/string';
+import { item, zero, result } from '../index';
 import * as P from '../parser';
 
-describe('Functor', () => {
-  it('Should create a new parser with a function applied to its output', () => {
-    const input = 'hello';
-    const toUpperCase = (s: string) => s.toUpperCase();
+describe('Instances', () => {
+  describe('Functor', () => {
+    it('Should create a new parser with a function applied to its output', () => {
+      const input = 'hello';
+      const toUpperCase = (s: string) => s.toUpperCase();
 
-    const result = P.parse(P.map(firstChar, toUpperCase))(input);
-    expect(result).toEqualSome(['H', 'ello']);
+      const result = P.parse(P.map(toUpperCase)(item))(input);
+      expect(result).toEqualSome(['H', 'ello']);
+    });
+
+    it('Should respect first functor law (identity)', () => {
+      const identity = <A>(a: A): A => a;
+
+      const input = 'hello';
+
+      const result = P.parse(P.map(identity)(item))(input);
+      expect(result).toEqualSome(['h', 'ello']);
+    });
+
+    it('Should respect second functor law (composition)', () => {
+      // Mapping over a _composition_ of functions should give the same result
+      // as successive mapping over given functions
+      const input = 'hello';
+      const f = (s: string) => s.toUpperCase();
+      const g = (s: string) => `*${s}*`;
+
+      const fog = flow(f, g);
+      const result1 = P.parse(P.map(fog)(item))(input);
+
+      const result2 = P.parse(P.map(g)(P.map(f)(item)))(input);
+
+      expect(result1).toStrictEqual(result2);
+      expect(result1).toEqualSome(['*H*', 'ello']);
+    });
   });
 
-  it('Should respect first functor law', () => {
-    const identity = <A>(a: A): A => a;
+  describe('Apply', () => {
+    it('Should apply a function to an argument under a type constructor', () => {
+      const input = 'hello world';
+      const joinWithColon = (s1: string) => (s2: string) => (s3: string) => `${s1}:${s2}:${s3}`;
+      const liftedF = P.map(joinWithColon)(item);
+      const result = pipe(liftedF, P.ap(item), P.ap(item), P.parse, apply(input));
 
-    const input = 'hello';
-
-    const result = P.parse(P.map(firstChar, identity))(input);
-    expect(result).toEqualSome(['h', 'ello']);
+      expect(result).toEqualSome(['h:e:l', 'lo world']);
+    });
   });
 
-  it('Should respect second functor law', () => {
-    // Mapping over a _composition_ of functions should give the same result
-    // as successive mapping over given functions
-    const input = 'hello';
-    const f = (s: string) => s.toUpperCase();
-    const g = (s: string) => `*${s}*`;
+  describe('Applicative', () => {
+    it('Should create a new parser by lifting a function and applying argument to it', () => {
+      const result = pipe(P.of(toUpperCase), P.ap(item), P.parse, apply('hello'));
 
-    const fog = flow(f, g);
-    const result1 = P.parse(P.map(firstChar, fog))(input);
-
-    const result2 = P.parse(P.map(P.map(firstChar, f), g))(input);
-
-    expect(result1).toStrictEqual(result2);
-    expect(result1).toEqualSome(['*H*', 'ello']);
+      expect(result).toEqualSome(['H', 'ello']);
+    });
   });
 });

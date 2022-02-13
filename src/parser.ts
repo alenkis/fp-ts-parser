@@ -3,6 +3,8 @@ import * as F from 'fp-ts/Functor';
 import * as Ap from 'fp-ts/Apply';
 import { apply, pipe } from 'fp-ts/lib/function';
 import { Monad1 } from 'fp-ts/lib/Monad';
+import { Pointed1 } from 'fp-ts/lib/Pointed';
+import { Applicative1 } from 'fp-ts/lib/Applicative';
 
 export type Parser<T> = (s: string) => O.Option<readonly [T, string]>;
 
@@ -53,4 +55,16 @@ export const _ap: Monad1<URI>['ap'] = (fab, fa) => pipe(fab, ap(fa));
 export const Apply: Ap.Apply1<URI> = {
   ...Functor,
   ap: _ap,
+};
+
+export const of: Pointed1<URI>['of'] =
+  <A>(a: A): Parser<A> =>
+  (input: string) =>
+    O.some([a, input]);
+
+export const Applicative: Applicative1<URI> = {
+  URI,
+  map: _map,
+  ap: _ap,
+  of,
 };
