@@ -58,4 +58,36 @@ describe('Instances', () => {
       expect(result).toEqualSome(['H', 'ello']);
     });
   });
+
+  describe('Monad', () => {
+    it('Should foo', () => {
+      const result = pipe(
+        P.chain((x: string) => P.of(toUpperCase(x))),
+        apply(item),
+        P.parse,
+        apply('foo'),
+      );
+
+      expect(result).toEqualSome(['F', 'oo']);
+    });
+
+    it('Should satify left identity law', () => {
+      const f = (s: string) => P.of(`${s}!`);
+      const a = 'hello';
+      const input = 'hello world';
+
+      const result = pipe(P.chain(f), apply(P.of(a)), P.parse, apply(input));
+
+      expect(result).toStrictEqual(pipe(f(a), P.parse, apply(input)));
+    });
+
+    it('Should satify right identity law', () => {
+      const input = 'hello world';
+      const fa = P.of('hello');
+
+      const result = pipe(P.chain(P.of), apply(fa), P.parse, apply(input));
+
+      expect(result).toStrictEqual(pipe(fa, P.parse, apply(input)));
+    });
+  });
 });

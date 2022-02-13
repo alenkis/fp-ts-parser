@@ -68,3 +68,24 @@ export const Applicative: Applicative1<URI> = {
   ap: _ap,
   of,
 };
+
+/**
+ * Composes computations in sequence, using the return value of one computation to determine the next computation.
+ */
+export const chain: <A, B>(f: (a: A) => Parser<B>) => (ma: Parser<A>) => Parser<B> =
+  (f) => (ma) => (input: string) =>
+    pipe(
+      parse(ma),
+      apply(input),
+      O.chain(([value, output]) => pipe(value, f, parse, apply(output))),
+    );
+
+export const _chain: Monad1<URI>['chain'] = (fa, f) => pipe(fa, chain(f));
+
+export const Monad: Monad1<URI> = {
+  URI,
+  map: _map,
+  ap: _ap,
+  of,
+  chain: _chain,
+};
