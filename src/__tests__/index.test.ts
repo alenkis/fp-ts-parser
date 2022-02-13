@@ -1,4 +1,4 @@
-import { dropMiddle, item } from '../index';
+import { dropMiddle, item, satisfy } from '../index';
 import * as P from '../parser';
 
 describe('item', () => {
@@ -29,5 +29,16 @@ describe('dropMiddle', () => {
     const result = P.parse(dropMiddle)(input);
 
     expect(result).toEqualSome(['ac', 'd']);
+  });
+});
+
+describe('satisfy', () => {
+  it('Should parse if input satisfies predicate', () => {
+    const isH = (s: string) => s === 'h';
+    const isHParser = satisfy(isH);
+
+    const result = P.parse(isHParser)('hello');
+
+    expect(result).toEqualSome(['h', 'ello']);
   });
 });

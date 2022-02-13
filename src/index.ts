@@ -29,3 +29,13 @@ export const dropMiddle: P.Parser<string> = pipe(
   P.ap(item),
   P.ap(item),
 );
+
+/**
+ * Check whether a character matches a given predicate.
+ */
+export const satisfy = (pred: (p: string) => Boolean): P.Parser<string> =>
+  pipe(
+    P.Do,
+    P.bind('c', () => item),
+    P.chain(({ c }) => (pred(c) ? P.of(c) : P.empty())),
+  );
