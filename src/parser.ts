@@ -1,13 +1,14 @@
 import * as O from 'fp-ts/Option';
 import * as F from 'fp-ts/Functor';
+import * as Ap from 'fp-ts/Apply';
 import { apply, pipe } from 'fp-ts/lib/function';
+import { Monad1 } from 'fp-ts/lib/Monad';
 
-type ParseResult<T> = O.Option<readonly [T, string]>;
-export type Parser<T> = (s: string) => ParseResult<T>;
+export type Parser<T> = (s: string) => O.Option<readonly [T, string]>;
 
 export const parse =
   <T>(parser: Parser<T>) =>
-  (input: string): ParseResult<T> =>
+  (input: string): O.Option<readonly [T, string]> =>
     parser(input);
 
 export const URI = 'Parser';
@@ -21,7 +22,8 @@ declare module 'fp-ts/HKT' {
 }
 
 export const map =
-  <A, B>(fa: Parser<A>, f: (a: A) => B): Parser<B> =>
+  <A, B>(f: (a: A) => B) =>
+  (fa: Parser<A>): Parser<B> =>
   (input: string) =>
     pipe(
       fa,
@@ -30,7 +32,25 @@ export const map =
       O.map(([value, out]) => [f(value), out] as const),
     );
 
+export const _map: Monad1<URI>['map'] = (fa, f) => pipe(fa, map(f));
+
 export const Functor: F.Functor1<URI> = {
   URI,
-  map,
+  map: _map,
+};
+
+export const ap: <A>(fa: Parser<A>) => <B>(fab: Parser<(a: A) => B>) => Parser<B> =
+  (fa) => (fab) => (input: string) =>
+    pipe(
+      fab,
+      parse,
+      apply(input),
+      O.chain(([g, output]) => map(g)(fa)(output)),
+    );
+
+export const _ap: Monad1<URI>['ap'] = (fab, fa) => pipe(fab, ap(fa));
+
+export const Apply: Ap.Apply1<URI> = {
+  ...Functor,
+  ap: _ap,
 };
