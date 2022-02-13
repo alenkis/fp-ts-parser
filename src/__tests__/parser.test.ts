@@ -1,6 +1,6 @@
 import { apply, flow, pipe } from 'fp-ts/lib/function';
 import { toUpperCase } from 'fp-ts/lib/string';
-import { item } from '../index';
+import { satisfy, item } from '../combinators';
 import * as P from '../parser';
 
 describe('Instances', () => {
@@ -87,6 +87,25 @@ describe('Instances', () => {
       const result = pipe(P.chain(P.of), apply(fa), P.parse, apply(input));
 
       expect(result).toStrictEqual(pipe(fa, P.parse, apply(input)));
+    });
+  });
+
+  describe('Alternative', () => {
+    it('Should correctly choose alternative', () => {
+      const p1 = satisfy((c) => c === 'h');
+      const p2 = satisfy((c) => c === 'w');
+      const p3 = satisfy((c) => c === 'e');
+      const input = 'world';
+
+      const result = pipe(
+        p1,
+        P.alt(() => p2),
+        P.alt(() => p3),
+        P.parse,
+        apply(input),
+      );
+
+      expect(result).toEqualRight(['w', 'orld']);
     });
   });
 });

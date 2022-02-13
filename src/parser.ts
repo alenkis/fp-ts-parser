@@ -2,10 +2,11 @@ import * as E from 'fp-ts/Either';
 import * as F from 'fp-ts/Functor';
 import * as Ap from 'fp-ts/Apply';
 import * as Ch from 'fp-ts/Chain';
-import { apply, pipe } from 'fp-ts/lib/function';
+import { apply, Lazy, pipe } from 'fp-ts/lib/function';
 import { Monad1 } from 'fp-ts/lib/Monad';
 import { Pointed1 } from 'fp-ts/lib/Pointed';
 import { Applicative1 } from 'fp-ts/lib/Applicative';
+import { Alternative1 } from 'fp-ts/lib/Alternative';
 
 export const URI = 'Parser';
 
@@ -112,3 +113,18 @@ export const Do: Parser<{}> = of({});
 export const bindTo = F.bindTo(Functor);
 
 export const bind = Ch.bind(Chain);
+
+export const alt: <B>(that: Lazy<Parser<B>>) => <A>(fa: Parser<A>) => Parser<A | B> =
+  (that) => (fa) => (input: string) =>
+    E.isLeft(parse(fa)(input)) ? that()(input) : fa(input);
+
+const _alt: Alternative1<URI>['alt'] = (fa, that) => pipe(fa, alt(that));
+
+export const Alternative: Alternative1<URI> = {
+  URI,
+  map: _map,
+  of,
+  ap: _ap,
+  alt: _alt,
+  zero: empty,
+};
