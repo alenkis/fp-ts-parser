@@ -1,4 +1,4 @@
-import * as O from 'fp-ts/Option';
+import * as E from 'fp-ts/Either';
 import * as F from 'fp-ts/Functor';
 import * as Ap from 'fp-ts/Apply';
 import * as Ch from 'fp-ts/Chain';
@@ -17,11 +17,15 @@ declare module 'fp-ts/HKT' {
   }
 }
 
-export type Parser<T> = (s: string) => O.Option<readonly [T, string]>;
+export type ParseError = {
+  message: string;
+  position: number;
+};
+export type Parser<T> = (s: string) => E.Either<ParseError, readonly [T, string]>;
 
 export const parse =
   <T>(parser: Parser<T>) =>
-  (input: string): O.Option<readonly [T, string]> =>
+  (input: string): E.Either<ParseError, readonly [T, string]> =>
     parser(input);
 
 export const map =
@@ -32,7 +36,7 @@ export const map =
       fa,
       parse,
       apply(input),
-      O.map(([value, out]) => [f(value), out] as const),
+      E.map(([value, out]) => [f(value), out] as const),
     );
 
 const _map: Monad1<URI>['map'] = (fa, f) => pipe(fa, map(f));
@@ -48,7 +52,7 @@ export const ap: <A>(fa: Parser<A>) => <B>(fab: Parser<(a: A) => B>) => Parser<B
       fab,
       parse,
       apply(input),
-      O.chain(([g, output]) => map(g)(fa)(output)),
+      E.chain(([g, output]) => map(g)(fa)(output)),
     );
 
 const _ap: Monad1<URI>['ap'] = (fab, fa) => pipe(fab, ap(fa));
@@ -61,12 +65,12 @@ export const Apply: Ap.Apply1<URI> = {
 export const of: Pointed1<URI>['of'] =
   <A>(a: A): Parser<A> =>
   (input: string) =>
-    O.some([a, input]);
+    E.right([a, input]);
 
 export const empty =
   <A>(): Parser<A> =>
   () =>
-    O.none;
+    E.left({ position: 0, message: 'empty' });
 
 export const Applicative: Applicative1<URI> = {
   URI,
@@ -83,7 +87,7 @@ export const chain: <A, B>(f: (a: A) => Parser<B>) => (ma: Parser<A>) => Parser<
     pipe(
       parse(ma),
       apply(input),
-      O.chain(([value, output]) => pipe(value, f, parse, apply(output))),
+      E.chain(([value, output]) => pipe(value, f, parse, apply(output))),
     );
 
 const _chain: Monad1<URI>['chain'] = (fa, f) => pipe(fa, chain(f));

@@ -6,20 +6,20 @@ describe('item', () => {
     const input = 'hello';
     const result = P.parse(item)(input);
 
-    expect(result).toEqualSome(['h', 'ello']);
+    expect(result).toEqualRight(['h', 'ello']);
   });
 
   it('Should parse the only char in the input', () => {
     const input = 'h';
     const result = P.parse(item)(input);
 
-    expect(result).toEqualSome(['h', '']);
+    expect(result).toEqualRight(['h', '']);
   });
 
   it('Should return empty array when given empty string', () => {
     const input = '';
     const result = P.parse(item)(input);
-    expect(result).toBeNone();
+    expect(result).toBeLeft();
   });
 });
 
@@ -28,7 +28,7 @@ describe('dropMiddle', () => {
     const input = 'abcd';
     const result = P.parse(dropMiddle)(input);
 
-    expect(result).toEqualSome(['ac', 'd']);
+    expect(result).toEqualRight(['ac', 'd']);
   });
 });
 
@@ -39,6 +39,6 @@ describe('satisfy', () => {
 
     const result = P.parse(isHParser)('hello');
 
-    expect(result).toEqualSome(['h', 'ello']);
+    expect(result).toEqualRight(['h', 'ello']);
   });
 });

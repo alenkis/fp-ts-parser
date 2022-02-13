@@ -1,7 +1,6 @@
-import { string } from 'fp-ts';
 import { apply, flow, pipe } from 'fp-ts/lib/function';
 import { toUpperCase } from 'fp-ts/lib/string';
-import { item, zero, result } from '../index';
+import { item } from '../index';
 import * as P from '../parser';
 
 describe('Instances', () => {
@@ -11,7 +10,7 @@ describe('Instances', () => {
       const toUpperCase = (s: string) => s.toUpperCase();
 
       const result = P.parse(P.map(toUpperCase)(item))(input);
-      expect(result).toEqualSome(['H', 'ello']);
+      expect(result).toEqualRight(['H', 'ello']);
     });
 
     it('Should respect first functor law (identity)', () => {
@@ -20,7 +19,7 @@ describe('Instances', () => {
       const input = 'hello';
 
       const result = P.parse(P.map(identity)(item))(input);
-      expect(result).toEqualSome(['h', 'ello']);
+      expect(result).toEqualRight(['h', 'ello']);
     });
 
     it('Should respect second functor law (composition)', () => {
@@ -36,7 +35,7 @@ describe('Instances', () => {
       const result2 = P.parse(P.map(g)(P.map(f)(item)))(input);
 
       expect(result1).toStrictEqual(result2);
-      expect(result1).toEqualSome(['*H*', 'ello']);
+      expect(result1).toEqualRight(['*H*', 'ello']);
     });
   });
 
@@ -47,7 +46,7 @@ describe('Instances', () => {
       const liftedF = P.map(joinWithColon)(item);
       const result = pipe(liftedF, P.ap(item), P.ap(item), P.parse, apply(input));
 
-      expect(result).toEqualSome(['h:e:l', 'lo world']);
+      expect(result).toEqualRight(['h:e:l', 'lo world']);
     });
   });
 
@@ -55,20 +54,20 @@ describe('Instances', () => {
     it('Should create a new parser by lifting a function and applying argument to it', () => {
       const result = pipe(P.of(toUpperCase), P.ap(item), P.parse, apply('hello'));
 
-      expect(result).toEqualSome(['H', 'ello']);
+      expect(result).toEqualRight(['H', 'ello']);
     });
   });
 
   describe('Monad', () => {
-    it('Should foo', () => {
+    it('Should correctly implement chain', () => {
       const result = pipe(
         P.chain((x: string) => P.of(toUpperCase(x))),
         apply(item),
         P.parse,
-        apply('foo'),
+        apply('hello'),
       );
 
-      expect(result).toEqualSome(['F', 'oo']);
+      expect(result).toEqualRight(['H', 'ello']);
     });
 
     it('Should satify left identity law', () => {
