@@ -1,4 +1,4 @@
-import { dropMiddle, item, satisfy } from '../index';
+import { dropMiddle, item, satisfy } from '../combinators';
 import * as P from '../parser';
 
 describe('item', () => {
